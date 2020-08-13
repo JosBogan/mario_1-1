@@ -18,8 +18,22 @@ console.log(window.innerHeight)
 let screenLeft = 0
 let screenRight = window.innerWidth
 let scroll = 0
+const currentFrame = 0
+const width = 16
+
+const floorObj = {
+  srcX: 0,
+  srcY: 32,
+  height: 16,
+  width: 16
+}
 
 const marioObj = {
+  large: false,
+  srcX: 15,
+  srcY: 1,
+  height: 32,
+  width: 12,
   x: 160,
   y: canvas.height - 240,
   y_velocity: 0,
@@ -33,23 +47,61 @@ let rightPressed = false
 let leftPressed = false
 var ctx = document.getElementById('canvas').getContext('2d')
 
+// ! size 80
+// const block = new Image()
+// block.src = 'sprites/ground_block80.png'
+
+// ! Size 16
 const block = new Image()
-block.src = 'sprites/ground_block80.png'
+block.src = 'sprites/mix_sheet.png'
 
 const mario = new Image()
 mario.src = 'sprites/mario-still80.png'
 
+// ! Size 80
+// const ground = [
+//   {
+//     height: canvas.height -  240,
+//     width: [0, 80 * 69]
+//   }
+// ]
+
+// ! Size 16
 const ground = [
   {
-    height: canvas.height -  240,
-    width: [0, 80 * 69]
+    height: canvas.height - (width * 3),
+    width: [0, width * 69]
   }
 ]
 
+// ! Size 80
+// function drawFloor(){
+//   for (var a = 1; a < 3; a++) {
+//     for (var i = 0; i < 69; i++) {
+//       ctx.drawImage(block, i * 80, window.innerHeight - (a * 80))
+//     }
+//   }
+  
+// }
+
+// ! Size 16
 function drawFloor(){
   for (var a = 1; a < 3; a++) {
     for (var i = 0; i < 69; i++) {
-      ctx.drawImage(block, i * 80, window.innerHeight - (a * 80))
+      // ! 80
+      // ctx.drawImage(block, i * width, window.innerHeight - (a * width))
+      // ! 16
+      ctx.drawImage(
+        block, // Item
+        floorObj.srcX, // SourceX
+        floorObj.srcY,  // SourceY
+        floorObj.width, // SourceWidth
+        floorObj.height, // SourceHeight
+        i * width, // Destination X
+        window.innerHeight - (a * width), // Destination Y
+        floorObj.width, // Destination Height
+        floorObj.height // Destionation Width
+      )
     }
   }
   
@@ -58,25 +110,31 @@ function drawFloor(){
 function drawMario() {
   const mario = new Image()
   if (rightPressed === true) {
-    console.log(marioObj.frame_steps)
-    if (marioObj.frame_steps < 5) {
-      mario.src = 'sprites/mario-walk-1.png'
-    } else if (marioObj.frame_steps < 10) {
-      mario.src = 'sprites/mario-walk-2.png'
-    } else if (marioObj.frame_steps < 15) {
-      mario.src = 'sprites/mario-walk-3.png'
-    } else if (marioObj.frame_steps < 20) {
-      mario.src = 'sprites/mario-walk-4.png'
-    } else {
-      mario.src = 'sprites/mario-walk-1.png'
-      marioObj.frame_steps = 0
-    }
-    marioObj.frame_steps += 1
-  } else {
-    mario.src = 'sprites/mario-still80.png'
+    console.log('right')
   }
-  ctx.drawImage(mario, marioObj.x, marioObj.y)
+  if (marioObj.large) {
+    marioObj.height = 32
+  } else {
+    marioObj.height = 16
+  }
+  mario.src = 'sprites/character_sheet.png'
+  ctx.drawImage(
+    mario, 
+    19,
+    0,
+    // marioObj.large ? marioObj.srcY * marioObj.height : (marioObj.srcY * marioObj.height) + (marioObj.height / 2),
+    marioObj.width,
+    marioObj.height,
+    marioObj.x, 
+    marioObj.y,
+    marioObj.width,
+    marioObj.height
+  )
 }
+
+// function updateFrame() {
+//   currentFrame = ++currentFrame
+// }
 
 function moveX() {
   if (rightPressed) {
@@ -139,7 +197,7 @@ function floorCollision() {
       marioObj.x >= groundSet.width[0] &&
       marioObj.x <= groundSet.width[1]
     ) {
-      marioObj.y = canvas.height -  240
+      marioObj.y = canvas.height - 48
       marioObj.y_velocity = 0
       marioObj.jumping = false
     }
@@ -153,7 +211,7 @@ function draw() {
   floorCollision()
   moveX()
   drawMario()
-  scrollMap()
+  // scrollMap()
   requestAnimationFrame(draw)
 }
 draw()
