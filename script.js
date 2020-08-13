@@ -1,13 +1,3 @@
-
-
-
-// // let currentSprite = 0
-// // const marioWalkCycle = ['sprites/mario-walk-1.png', 'sprites/mario-walk-2.png', 'sprites/maio-walk-3.png', 'sprites/maio-walk-4.png']
-
-// var mario = new Image()
-// mario.src = 'sprites/mario-still80.png'
-
-
 const canvas = document.querySelector('#canvas')
 
 canvas.width = window.innerWidth * 3
@@ -47,26 +37,12 @@ let rightPressed = false
 let leftPressed = false
 var ctx = document.getElementById('canvas').getContext('2d')
 
-// ! size 80
-// const block = new Image()
-// block.src = 'sprites/ground_block80.png'
-
-// ! Size 16
 const block = new Image()
 block.src = 'sprites/mix_sheet.png'
 
-const mario = new Image()
-mario.src = 'sprites/mario-still80.png'
+// const mario = new Image()
+// mario.src = 'sprites/mario-still80.png'
 
-// ! Size 80
-// const ground = [
-//   {
-//     height: canvas.height -  240,
-//     width: [0, 80 * 69]
-//   }
-// ]
-
-// ! Size 16
 const ground = [
   {
     height: canvas.height - (width * 3),
@@ -132,7 +108,7 @@ function drawMario() {
   mario.src = 'sprites/character_sheet.png'
   ctx.drawImage(
     mario, 
-    19,
+    0,
     0,
     // marioObj.large ? marioObj.srcY * marioObj.height : (marioObj.srcY * marioObj.height) + (marioObj.height / 2),
     marioObj.width,
