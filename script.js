@@ -10,7 +10,7 @@
 
 const canvas = document.querySelector('#canvas')
 
-canvas.width = window.innerWidth * 2
+canvas.width = window.innerWidth * 3
 canvas.height = window.innerHeight
 
 console.log(window.innerHeight)
@@ -70,40 +70,52 @@ mario.src = 'sprites/mario-still80.png'
 const ground = [
   {
     height: canvas.height - (width * 3),
-    width: [0, width * 69]
+    width: [0, width * 69],
+    start: 0,
+    number: 69
+  },
+  {
+    height: canvas.height - (width * 3),
+    width: [width * 71, width * 86],
+    start: 71,
+    number: 15
+  },
+  {
+    height: canvas.height - (width * 3),
+    width: [width * 89, width * 153],
+    start: 89,
+    number: 64
+  },
+  {
+    height: canvas.height - (width * 3),
+    width: [width * 155, width * 299],
+    start: 155,
+    number: 53
   }
 ]
 
-// ! Size 80
-// function drawFloor(){
-//   for (var a = 1; a < 3; a++) {
-//     for (var i = 0; i < 69; i++) {
-//       ctx.drawImage(block, i * 80, window.innerHeight - (a * 80))
-//     }
-//   }
-  
-// }
 
 // ! Size 16
 function drawFloor(){
-  for (var a = 1; a < 3; a++) {
-    for (var i = 0; i < 69; i++) {
-      // ! 80
-      // ctx.drawImage(block, i * width, window.innerHeight - (a * width))
-      // ! 16
-      ctx.drawImage(
-        block, // Item
-        floorObj.srcX, // SourceX
-        floorObj.srcY,  // SourceY
-        floorObj.width, // SourceWidth
-        floorObj.height, // SourceHeight
-        i * width, // Destination X
-        window.innerHeight - (a * width), // Destination Y
-        floorObj.width, // Destination Height
-        floorObj.height // Destionation Width
-      )
+
+  ground.forEach(groundSet => {
+    for (let a = 1; a < 3; a++) {
+      for (let i = groundSet.start; i < (groundSet.start + groundSet.number); i++) {
+        ctx.drawImage(
+          block, // Item
+          floorObj.srcX, // SourceX
+          floorObj.srcY,  // SourceY
+          floorObj.width, // SourceWidth
+          floorObj.height, // SourceHeight
+          i * width, // Destination X
+          window.innerHeight - (a * width), // Destination Y
+          floorObj.width, // Destination Height
+          floorObj.height // Destionation Width
+        )
+      }
     }
-  }
+  })
+
   
 }
 
@@ -149,12 +161,13 @@ function moveX() {
 function scrollMap() {
   if (
     rightPressed === true && 
-    marioObj.x >= (((screenLeft + screenRight) / 2) - ((screenRight - screenLeft) / 10))
+    marioObj.x >= (((screenLeft + screenRight) / 2) - ((screenRight - screenLeft) / 10)) &&
+    scroll < ((ground[ground.length - 1].start + ground[ground.length - 1].number) * width) - window.innerWidth
   ) {
     scroll += 10
     screenLeft += 10
     screenRight += 10
-    canvas.style.transform = `scale(0.7) translate(-${scroll}px, 0)`
+    canvas.style.transform = `translate(-${scroll}px, 0)`
   }
 }
 
@@ -179,7 +192,7 @@ function keyDownEvent() {
   } else if (event.key === 'up' || event.key === 'ArrowUp') {
     if (!marioObj.jumping) {
       marioObj.jumping = true
-      marioObj.y_velocity -= 30
+      marioObj.y_velocity -= 10
     }
   }
 }
@@ -194,7 +207,7 @@ function floorCollision() {
   ground.forEach(groundSet => {
     if (
       marioObj.y >= groundSet.height &&
-      marioObj.x >= groundSet.width[0] &&
+      marioObj.x >= groundSet.width[0] - marioObj.width &&
       marioObj.x <= groundSet.width[1]
     ) {
       marioObj.y = canvas.height - 48
@@ -211,7 +224,7 @@ function draw() {
   floorCollision()
   moveX()
   drawMario()
-  // scrollMap()
+  scrollMap()
   requestAnimationFrame(draw)
 }
 draw()
