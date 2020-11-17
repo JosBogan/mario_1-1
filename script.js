@@ -16,7 +16,6 @@ function init() {
   let screenLeft = 0
   let screenRight = window.innerWidth
   let scroll = 0
-  const currentFrame = 0
   const width = 16
   
   const floorObj = {
@@ -29,18 +28,13 @@ function init() {
   const marioObj = {
 
     large: false,
-    speed: 3,
-    srcX: 15,
-    srcY: 1,
-    height: 32,
-    width: 16,
+    speed: 2,
     x: 160,
     y: canvas.height - 300,
     y_velocity: 0,
     x_velocity: 0,
     jumping: false,
-    walk_state: 0,
-    // walk_sprites = [this.sprites.walk_r1, this.],
+    // walk_state: 0,
     frame_steps: 0,
     sprites: {
       stand_r: {
@@ -50,6 +44,14 @@ function init() {
       stand_l: {
         coords: [181, 0],
         dimensions: [13, 16]
+      },
+      jumping_r: {
+        coords: [359, 0],
+        dimensions: [17, 16]
+      },
+      jumping_l: {
+        coords: [29, 0],
+        dimensions: [17, 16]
       },
       walk_r: [
         {
@@ -86,7 +88,13 @@ function init() {
 
     drawMario() {
       const mario = new Image()
-      if (rightPressed === true) {
+      if (this.jumping === true) {
+        if (leftPressed === true) {
+          this.currentSprite = this.sprites.jumping_l
+        } else {
+          this.currentSprite = this.sprites.jumping_r
+        }
+      } else if (rightPressed === true) {
         if (!this.sprites.walk_r.includes(this.currentSprite)) {
           this.currentSprite = this.sprites.walk_r[0]
         } else if (this.frame_steps >= 5) {
@@ -120,7 +128,6 @@ function init() {
         mario, 
         this.currentSprite.coords[0],
         this.currentSprite.coords[1],
-        // marioObj.large ? marioObj.srcY * marioObj.height : (marioObj.srcY * marioObj.height) + (marioObj.height / 2),
         this.currentSprite.dimensions[0],
         this.currentSprite.dimensions[1],
         this.x, 
@@ -227,10 +234,8 @@ function init() {
   function keyUpEvent(e) {
     if (e.key === 'right' || e.key === 'ArrowRight') {
       rightPressed = false
-      // mario.src = 'sprites/mario-still80.png'
     } else if (e.key === 'left' || e.key === 'ArrowLeft') {
       leftPressed = false
-      // mario.src = 'sprites/mario-still80.png'
     }
   }
   
@@ -250,7 +255,7 @@ function init() {
   }
   
   function gravity() {
-    marioObj.y_velocity += 1.3
+    marioObj.y_velocity += 1.1
     marioObj.y += marioObj.y_velocity
     marioObj.y_velocity *= 1
   }
@@ -259,7 +264,7 @@ function init() {
     ground.forEach(groundSet => {
       if (
         marioObj.y >= groundSet.height &&
-        marioObj.x >= groundSet.width[0] - marioObj.width &&
+        marioObj.x >= groundSet.width[0] - marioObj.currentSprite.dimensions[0] &&
         marioObj.x <= groundSet.width[1]
       ) {
         marioObj.y = canvas.height - ((floorObj.height * 2 ) + marioObj.currentSprite.dimensions[1])
