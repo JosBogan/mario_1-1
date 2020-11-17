@@ -29,6 +29,7 @@ function init() {
   const marioObj = {
 
     large: false,
+    speed: 3,
     srcX: 15,
     srcY: 1,
     height: 32,
@@ -46,6 +47,10 @@ function init() {
         coords: [211, 0],
         dimensions: [13, 16]
       },
+      stand_l: {
+        coords: [181, 0],
+        dimensions: [13, 16]
+      },
       walk_r: [
         {
           coords: [241, 0],
@@ -59,6 +64,20 @@ function init() {
           coords: [300, 0],
           dimensions: [16, 16]
         }
+      ],
+      walk_l: [
+        {
+          coords: [150, 0],
+          dimensions: [14, 15]
+        },
+        {
+          coords: [121, 0],
+          dimensions: [12, 16]
+        },
+        {
+          coords: [89, 0],
+          dimensions: [16, 16]
+        }
       ]
     },
 
@@ -70,8 +89,23 @@ function init() {
       if (rightPressed === true) {
         if (!this.sprites.walk_r.includes(this.currentSprite)) {
           this.currentSprite = this.sprites.walk_r[0]
+        } else if (this.frame_steps >= 5) {
+          if (this.sprites.walk_r.indexOf(this.currentSprite) === this.sprites.walk_r.length - 1) {
+            this.currentSprite = this.sprites.walk_r[0]
+          } else {
+            this.currentSprite = this.sprites.walk_r[this.sprites.walk_r.indexOf(this.currentSprite) + 1]
+          }
         }
-        
+      } else if (leftPressed === true) {
+        if (!this.sprites.walk_l.includes(this.currentSprite)) {
+          this.currentSprite = this.sprites.walk_l[0]
+        } else if (this.frame_steps >= 5) {
+          if (this.sprites.walk_l.indexOf(this.currentSprite) === this.sprites.walk_l.length - 1) {
+            this.currentSprite = this.sprites.walk_l[0]
+          } else {
+            this.currentSprite = this.sprites.walk_l[this.sprites.walk_l.indexOf(this.currentSprite) + 1]
+          }
+        }
       } else {
         this.currentSprite = this.sprites.stand_r
       }
@@ -94,10 +128,11 @@ function init() {
         this.currentSprite.dimensions[0],
         this.currentSprite.dimensions[1],
       )
+      this.countSteps()
     },
 
     countSteps() {
-
+      this.frame_steps >= 5 ? this.frame_steps = 0 : this.frame_steps++
     }
 
   }
@@ -167,10 +202,10 @@ function init() {
   
   function moveX() {
     if (rightPressed) {
-      marioObj.x += 10
+      marioObj.x += marioObj.speed
     } else if (leftPressed) {
-      if (marioObj.x >= screenLeft + 10) {
-        marioObj.x -= 10
+      if (marioObj.x >= screenLeft + marioObj.speed) {
+        marioObj.x -= marioObj.speed
       }
     }
   }
@@ -181,9 +216,9 @@ function init() {
       marioObj.x >= (((screenLeft + screenRight) / 2) - ((screenRight - screenLeft) / 10)) &&
       scroll < ((ground[ground.length - 1].start + ground[ground.length - 1].number) * width) - window.innerWidth
     ) {
-      scroll += 10
-      screenLeft += 10
-      screenRight += 10
+      scroll += marioObj.speed
+      screenLeft += marioObj.speed
+      screenRight += marioObj.speed
       canvas.style.transform = `translate(-${scroll}px, 0)`
     }
   }
