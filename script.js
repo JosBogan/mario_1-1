@@ -27,9 +27,11 @@ function init() {
   
   const marioObj = {
 
+    // gravity: true,
+
     large: false,
     speed: 2,
-    x: 160,
+    x: 500,
     y: canvas.height - 300,
     y_velocity: 0,
     x_velocity: 0,
@@ -84,6 +86,10 @@ function init() {
     },
 
     currentSprite: null,
+
+    initialise() {
+      this.currentSprite = this.sprites.stand_r
+    },
 
 
     drawMario() {
@@ -144,22 +150,54 @@ function init() {
 
   }
 
+  class Pipe {
+    constructor(locationX, locationY, height) {
+      this.location = [locationX, locationY]
+      this.srcCoordsCenter = [0, 144]
+      this.srcCoordsTop = [0, 128],
+      this.height = height
+    }
+  }
+
+  let pipes = [
+    [28, 3, 1],
+    [37, 3, 2],
+    [45, 3, 3],
+    [55, 3, 3]
+  ]
+
 
   class Brick {
     constructor(locationX, locationY) {
       this.location = [locationX, locationY]
-      this.srcCoords  = [112, 272]
+      this.srcCoords  = [272, 112]
       // this.src = 'sprites/block_sheet.png'
     }
   }
 
   let bricks = [
-    [21, 6],
-    [23, 6],
-    [25, 6] 
+    [20, 6],
+    [22, 6],
+    [24, 6],
+    [77, 6],
+    [79, 6],
+    [80, 10],
+    [81, 10],
+    [81, 10],
+    [82, 10],
+    [83, 10],
+    [84, 10],
+    [85, 10],
+    [86, 10],
+    [87, 10]
   ]
 
   bricks = bricks.map(brick => new Brick(brick[0], brick[1]))
+
+  pipes = pipes.map(pipe => new Pipe(pipe[0], pipe[1], pipe[2]))
+
+  const pipeImg = new Image()
+  pipeImg.src = 'sprites/tiles.png'
 
   const brickImg = new Image()
   brickImg.src = 'sprites/block_sheet.png'
@@ -204,15 +242,48 @@ function init() {
 
   function  drawBricks() {
     bricks.forEach(brick => {
+      // console.log(brick)
       ctx.drawImage(
         brickImg,
+        // 0,
+        // 0,
         brick.srcCoords[0],
         brick.srcCoords[1],
         world.width,
         world.height,
         brick.location[0] * world.width,
-        window.innerHeight - brick.location[0] * world.height,
+        window.innerHeight - brick.location[1] * world.height,
         world.width,
+        world.height,
+      )
+    })
+  }
+
+  function drawPipes() {
+    pipes.forEach(pipe => {
+      // console.log(pipe)
+      for (let i = 0; i < pipe.height; i++) {
+        ctx.drawImage(
+          pipeImg,
+          pipe.srcCoordsCenter[0],
+          pipe.srcCoordsCenter[1],
+          world.width * 2,
+          world.height,
+          pipe.location[0] * world.width,
+          window.innerHeight - (pipe.location[1] + i) * world.height,
+          world.width * 2,
+          world.height,
+        )
+      }
+      ctx.drawImage(
+        pipeImg,
+        pipe.srcCoordsTop[0],
+        pipe.srcCoordsTop[1],
+        world.width * 2,
+        world.height,
+        pipe.location[0] * world.width,
+        window.innerHeight - (pipe.location[1] + pipe.height) * world.height,
+        world.width * 2,
         world.height,
       )
     })
@@ -246,15 +317,28 @@ function init() {
   
   function moveX() {
     if (rightPressed) {
+
       if (marioObj.x_velocity < 3) marioObj.x_velocity += 0.2
-      // marioObj.x += marioObj.speed // ! No Velocity
+
+      if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
+        return
+      }
+      
       marioObj.x += marioObj.x_velocity
+
+      // if (pipeCollision()) marioObj.x -= marioObj.x_velocity
+      
     } else if (leftPressed) {
-      // if (marioObj.x >= screenLeft + marioObj.speed) { // ! No Velocity
+
+      
       if (marioObj.x >= screenLeft + marioObj.x_velocity) {
-        // marioObj.x -= marioObj.speed // ! No Velocity
+        
         if (marioObj.x_velocity > -3) marioObj.x_velocity -= 0.2
-        // marioObj.x -= marioObj.x_velocity // ! Using - positive speed rather than + negative speed
+
+        if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
+          return
+        }
+        
         marioObj.x += marioObj.x_velocity
       }
     }
@@ -266,9 +350,6 @@ function init() {
       marioObj.x >= (((screenLeft + screenRight) / 2) - ((screenRight - screenLeft) / 10)) &&
       scroll < ((ground[ground.length - 1].start + ground[ground.length - 1].number) * width) - window.innerWidth
     ) {
-      // scroll += marioObj.speed
-      // screenLeft += marioObj.speed
-      // screenRight += marioObj.speed
       scroll += marioObj.x_velocity
       screenLeft += marioObj.x_velocity
       screenRight += marioObj.x_velocity
@@ -288,12 +369,15 @@ function init() {
   function keyDownEvent(e) {
     if (e.key === 'right' || e.key === 'ArrowRight') {
       e.preventDefault()
+      if (!rightPressed) marioObj.x_velocity = 0
       rightPressed = true
     } else if (e.key === 'left' || e.key === 'ArrowLeft') {
       e.preventDefault()
+      if (!leftPressed) marioObj.x_velocity = 0
       leftPressed = true
     } else if (e.key === 'up' || e.key === 'ArrowUp') {
       if (!marioObj.jumping) {
+        // marioObj.gravity = true
         marioObj.jumping = true
         marioObj.y_velocity -= 10
       }
@@ -301,9 +385,42 @@ function init() {
   }
   
   function gravity() {
+    // if (marioObj.gravity) {
     marioObj.y_velocity += 1.1
     marioObj.y += marioObj.y_velocity
     marioObj.y_velocity *= 1
+    // }
+  }
+
+  function pipeSideCollision(newPos) {
+    let collision
+    pipes.forEach(pipe => {
+      if (
+        marioObj.y + marioObj.currentSprite.dimensions[1] >= window.innerHeight - (pipe.height * world.height) - (world.height * 2) &&
+        newPos + marioObj.currentSprite.dimensions[0] >= pipe.location[0] * world.width &&
+        newPos <= (pipe.location[0] * world.width) + (world.width * 2)
+      ) {
+        collision = true
+      }
+    }) 
+    return collision
+  }
+
+  function pipeTopCollision() {
+    let collision
+    pipes.forEach(pipe => {
+      if (
+        marioObj.y + marioObj.currentSprite.dimensions[1] >= window.innerHeight - ((pipe.height + 1) * world.height) - (world.height * 2) &&
+        marioObj.x + marioObj.currentSprite.dimensions[0] >= pipe.location[0] * world.width &&
+        marioObj.x <= (pipe.location[0] * world.width) + (world.width * 2)
+      ) {
+        // marioObj.gravity = false
+        marioObj.y = window.innerHeight - ((pipe.height + 1) * world.height) - (floorObj.height * 2 ) - marioObj.currentSprite.dimensions[1]
+        marioObj.y_velocity = 0
+        marioObj.jumping = false
+      }
+    }) 
+    return collision
   }
   
   function floorCollision() {
@@ -313,6 +430,7 @@ function init() {
         marioObj.x >= groundSet.width[0] - marioObj.currentSprite.dimensions[0] &&
         marioObj.x <= groundSet.width[1]
       ) {
+        // marioObj.gravity = false
         marioObj.y = canvas.height - ((floorObj.height * 2 ) + marioObj.currentSprite.dimensions[1])
         marioObj.y_velocity = 0
         marioObj.jumping = false
@@ -324,13 +442,17 @@ function init() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawBricks()
     drawFloor()
+    drawPipes()
     gravity()
     floorCollision()
     moveX()
+    pipeTopCollision()
     marioObj.drawMario()
     scrollMap()
     requestAnimationFrame(draw)
   }
+
+  marioObj.initialise()
   draw()
   
   
