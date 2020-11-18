@@ -5,7 +5,7 @@
 }
 
 canvas {
-  /* background: url('sprites/background.png');
+  background: url('sprites/background.png');
   background-repeat: no-repeat;
-  background-position: 0 calc(100vh - 240px); */
+  background-position: 0 calc(100vh - 240px);
 }
