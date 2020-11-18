@@ -30,8 +30,9 @@ function init() {
     // gravity: true,
 
     large: false,
-    speed: 2,
-    x: 500,
+    speed: 0,
+    roi: 1,
+    x: 160,
     y: canvas.height - 300,
     y_velocity: 0,
     x_velocity: 0,
@@ -313,12 +314,14 @@ function init() {
   
     
   }
-  
+
   
   function moveX() {
     if (rightPressed) {
 
-      if (marioObj.x_velocity < 3) marioObj.x_velocity += 0.2
+      if (marioObj.x_velocity < 0) {
+        marioObj.x_velocity += 0.2
+      } else if (marioObj.x_velocity < 3) marioObj.x_velocity += 0.05
 
       if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
         return
@@ -333,7 +336,9 @@ function init() {
       
       if (marioObj.x >= screenLeft + marioObj.x_velocity) {
         
-        if (marioObj.x_velocity > -3) marioObj.x_velocity -= 0.2
+        if (marioObj.x_velocity > 0) {
+          marioObj.x_velocity -= 0.2
+        } else if (marioObj.x_velocity > -3) marioObj.x_velocity -= 0.05
 
         if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
           return
@@ -341,7 +346,19 @@ function init() {
         
         marioObj.x += marioObj.x_velocity
       }
+    } else {
+      if (marioObj.x_velocity > 0.1) {
+        marioObj.x_velocity -= 0.2
+        marioObj.x += marioObj.x_velocity
+      } else if (marioObj.x_velocity < -0.1) {
+        marioObj.x_velocity += 0.2
+        marioObj.x += marioObj.x_velocity
+      } else {
+        marioObj.x_velocity = 0
+        marioObj.x += marioObj.x_velocity
+      }
     }
+    console.log(marioObj.x_velocity)
   }
   
   function scrollMap() {
@@ -369,11 +386,11 @@ function init() {
   function keyDownEvent(e) {
     if (e.key === 'right' || e.key === 'ArrowRight') {
       e.preventDefault()
-      if (!rightPressed) marioObj.x_velocity = 0
+      // if (!rightPressed) marioObj.x_velocity = 0
       rightPressed = true
     } else if (e.key === 'left' || e.key === 'ArrowLeft') {
       e.preventDefault()
-      if (!leftPressed) marioObj.x_velocity = 0
+      // if (!leftPressed) marioObj.x_velocity = 0
       leftPressed = true
     } else if (e.key === 'up' || e.key === 'ArrowUp') {
       if (!marioObj.jumping) {
