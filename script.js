@@ -11,7 +11,6 @@ function init() {
   canvas.width = window.innerWidth * 3
   canvas.height = window.innerHeight
   
-  console.log(window.innerHeight)
   
   let screenLeft = 0
   let screenRight = window.innerWidth
@@ -37,6 +36,8 @@ function init() {
     y_velocity: 0,
     x_velocity: 0,
     jumping: false,
+    jump_val: 0,
+    upPressed: false,
     // walk_state: 0,
     frame_steps: 0,
     sprites: {
@@ -55,6 +56,14 @@ function init() {
       jumping_l: {
         coords: [29, 0],
         dimensions: [17, 16]
+      },
+      slide_r: {
+        coords: [331, 0],
+        dimensions: [14, 16]
+      },
+      slide_l: {
+        coords: [60, 0],
+        dimensions: [14, 16]
       },
       walk_r: [
         {
@@ -92,6 +101,13 @@ function init() {
       this.currentSprite = this.sprites.stand_r
     },
 
+    jump() {
+      if (this.jumping && this.jump_val > -5) {
+        this.jump_val -= 0.5
+      }
+      this.y_velocity -= this.jump_val
+    },
+
 
     drawMario() {
       const mario = new Image()
@@ -102,7 +118,9 @@ function init() {
           this.currentSprite = this.sprites.jumping_r
         }
       } else if (rightPressed === true) {
-        if (!this.sprites.walk_r.includes(this.currentSprite)) {
+        if (this.x_velocity < 0) {
+          this.currentSprite = this.sprites.slide_r
+        } else if (!this.sprites.walk_r.includes(this.currentSprite)) {
           this.currentSprite = this.sprites.walk_r[0]
         } else if (this.frame_steps >= 5) {
           if (this.sprites.walk_r.indexOf(this.currentSprite) === this.sprites.walk_r.length - 1) {
@@ -112,7 +130,9 @@ function init() {
           }
         }
       } else if (leftPressed === true) {
-        if (!this.sprites.walk_l.includes(this.currentSprite)) {
+        if (this.x_velocity > 0) {
+          this.currentSprite = this.sprites.slide_l
+        } else if (!this.sprites.walk_l.includes(this.currentSprite)) {
           this.currentSprite = this.sprites.walk_l[0]
         } else if (this.frame_steps >= 5) {
           if (this.sprites.walk_l.indexOf(this.currentSprite) === this.sprites.walk_l.length - 1) {
@@ -130,7 +150,6 @@ function init() {
         this.height = 20
       }
       mario.src = 'sprites/mario_char_sprites.png'
-      // console.log(this.sprites.stand_r[0])
       ctx.drawImage(
         mario, 
         this.currentSprite.coords[0],
@@ -243,7 +262,6 @@ function init() {
 
   function  drawBricks() {
     bricks.forEach(brick => {
-      // console.log(brick)
       ctx.drawImage(
         brickImg,
         // 0,
@@ -262,7 +280,6 @@ function init() {
 
   function drawPipes() {
     pipes.forEach(pipe => {
-      // console.log(pipe)
       for (let i = 0; i < pipe.height; i++) {
         ctx.drawImage(
           pipeImg,
@@ -318,15 +335,19 @@ function init() {
   
   function moveX() {
     if (rightPressed) {
+      
 
       if (marioObj.x_velocity < 0) {
-        marioObj.x_velocity += 0.2
-      } else if (marioObj.x_velocity < 3) marioObj.x_velocity += 0.05
-
+        marioObj.x_velocity += 0.1
+      } else if (marioObj.x_velocity < 2) {
+        marioObj.x_velocity += 0.05
+        
+      }
       if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
+        marioObj.x = pipeSideCollision(marioObj.x + marioObj.x_velocity) - marioObj.currentSprite.dimensions[0] - 1
         return
       }
-      
+
       marioObj.x += marioObj.x_velocity
 
       // if (pipeCollision()) marioObj.x -= marioObj.x_velocity
@@ -337,10 +358,12 @@ function init() {
       if (marioObj.x >= screenLeft + marioObj.x_velocity) {
         
         if (marioObj.x_velocity > 0) {
-          marioObj.x_velocity -= 0.2
-        } else if (marioObj.x_velocity > -3) marioObj.x_velocity -= 0.05
+          
+          marioObj.x_velocity -= 0.1
+        } else if (marioObj.x_velocity > -2) marioObj.x_velocity -= 0.05
 
         if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
+          marioObj.x_velocity = 0
           return
         }
         
@@ -348,17 +371,24 @@ function init() {
       }
     } else {
       if (marioObj.x_velocity > 0.1) {
-        marioObj.x_velocity -= 0.2
+        marioObj.x_velocity -= 0.1
+        if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
+          return
+        }
+
         marioObj.x += marioObj.x_velocity
       } else if (marioObj.x_velocity < -0.1) {
-        marioObj.x_velocity += 0.2
+        marioObj.x_velocity += 0.1
+        if (pipeSideCollision(marioObj.x + marioObj.x_velocity)) {
+          marioObj.x_velocity = 0
+          return
+        }
         marioObj.x += marioObj.x_velocity
       } else {
         marioObj.x_velocity = 0
         marioObj.x += marioObj.x_velocity
       }
     }
-    console.log(marioObj.x_velocity)
   }
   
   function scrollMap() {
@@ -380,6 +410,8 @@ function init() {
       rightPressed = false
     } else if (e.key === 'left' || e.key === 'ArrowLeft') {
       leftPressed = false
+    } else if (e.key === 'up' || e.key === 'ArrowUp') {
+      marioObj.upPressed = false
     }
   }
   
@@ -396,16 +428,18 @@ function init() {
       if (!marioObj.jumping) {
         // marioObj.gravity = true
         marioObj.jumping = true
-        marioObj.y_velocity -= 10
+        marioObj.y_velocity -= 3
+        marioObj.upPressed = true
       }
     }
   }
   
   function gravity() {
     // if (marioObj.gravity) {
-    marioObj.y_velocity += 1.1
+    marioObj.y_velocity += 0.2
+    if (marioObj.upPressed && marioObj.y_velocity > -2.25) marioObj.y_velocity -= 0.15
     marioObj.y += marioObj.y_velocity
-    marioObj.y_velocity *= 1
+    // marioObj.y_velocity *= 1
     // }
   }
 
@@ -417,7 +451,7 @@ function init() {
         newPos + marioObj.currentSprite.dimensions[0] >= pipe.location[0] * world.width &&
         newPos <= (pipe.location[0] * world.width) + (world.width * 2)
       ) {
-        collision = true
+        collision = pipe.location[0] * world.width
       }
     }) 
     return collision
@@ -431,6 +465,7 @@ function init() {
         marioObj.x + marioObj.currentSprite.dimensions[0] >= pipe.location[0] * world.width &&
         marioObj.x <= (pipe.location[0] * world.width) + (world.width * 2)
       ) {
+        console.log(marioObj.x + marioObj.currentSprite.dimensions[0], pipe.location[0] * world.width)
         // marioObj.gravity = false
         marioObj.y = window.innerHeight - ((pipe.height + 1) * world.height) - (floorObj.height * 2 ) - marioObj.currentSprite.dimensions[1]
         marioObj.y_velocity = 0
@@ -464,6 +499,7 @@ function init() {
     floorCollision()
     moveX()
     pipeTopCollision()
+    // marioObj.jump()
     marioObj.drawMario()
     scrollMap()
     requestAnimationFrame(draw)
