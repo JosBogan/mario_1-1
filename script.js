@@ -143,6 +143,27 @@ function init() {
     }
 
   }
+
+
+  class Brick {
+    constructor(locationX, locationY) {
+      this.location = [locationX, locationY]
+      this.srcCoords  = [112, 272]
+      // this.src = 'sprites/block_sheet.png'
+    }
+  }
+
+  let bricks = [
+    [21, 6],
+    [23, 6],
+    [25, 6] 
+  ]
+
+  bricks = bricks.map(brick => new Brick(brick[0], brick[1]))
+
+  const brickImg = new Image()
+  brickImg.src = 'sprites/block_sheet.png'
+
   
   let rightPressed = false
   let leftPressed = false
@@ -180,6 +201,22 @@ function init() {
       number: 53
     }
   ]
+
+  function  drawBricks() {
+    bricks.forEach(brick => {
+      ctx.drawImage(
+        brickImg,
+        brick.srcCoords[0],
+        brick.srcCoords[1],
+        world.width,
+        world.height,
+        brick.location[0] * world.width,
+        window.innerHeight - brick.location[0] * world.height,
+        world.width,
+        world.height,
+      )
+    })
+  }
   
   
   // ! Size 16
@@ -209,10 +246,16 @@ function init() {
   
   function moveX() {
     if (rightPressed) {
-      marioObj.x += marioObj.speed
+      if (marioObj.x_velocity < 3) marioObj.x_velocity += 0.2
+      // marioObj.x += marioObj.speed // ! No Velocity
+      marioObj.x += marioObj.x_velocity
     } else if (leftPressed) {
-      if (marioObj.x >= screenLeft + marioObj.speed) {
-        marioObj.x -= marioObj.speed
+      // if (marioObj.x >= screenLeft + marioObj.speed) { // ! No Velocity
+      if (marioObj.x >= screenLeft + marioObj.x_velocity) {
+        // marioObj.x -= marioObj.speed // ! No Velocity
+        if (marioObj.x_velocity > -3) marioObj.x_velocity -= 0.2
+        // marioObj.x -= marioObj.x_velocity // ! Using - positive speed rather than + negative speed
+        marioObj.x += marioObj.x_velocity
       }
     }
   }
@@ -223,9 +266,12 @@ function init() {
       marioObj.x >= (((screenLeft + screenRight) / 2) - ((screenRight - screenLeft) / 10)) &&
       scroll < ((ground[ground.length - 1].start + ground[ground.length - 1].number) * width) - window.innerWidth
     ) {
-      scroll += marioObj.speed
-      screenLeft += marioObj.speed
-      screenRight += marioObj.speed
+      // scroll += marioObj.speed
+      // screenLeft += marioObj.speed
+      // screenRight += marioObj.speed
+      scroll += marioObj.x_velocity
+      screenLeft += marioObj.x_velocity
+      screenRight += marioObj.x_velocity
       canvas.style.transform = `translate(-${scroll}px, 0)`
     }
   }
@@ -276,6 +322,7 @@ function init() {
   
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
+    drawBricks()
     drawFloor()
     gravity()
     floorCollision()
