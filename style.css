@@ -5,6 +5,8 @@
 }
 
 canvas {
+  /* position: relative;
+  top: -500px; */
   background: url('sprites/background.png');
   background-repeat: no-repeat;
   background-position: 0 calc(100vh - 240px);
